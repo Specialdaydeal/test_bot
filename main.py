@@ -7,7 +7,11 @@ bro.load_browser_config()
 
 bro.driver.get("https://www.linkedin.com/uas/login")
 bro.wait_load_url("https://www.linkedin.com/uas/login")
-bro.linkedin_login()
+
+username = input("enter linkedin username:\n")
+password = input("enter linkedin password:\n")
+
+bro.linkedin_login(username, password)
 
 # bro.driver.get("https://www.linkedin.com/mwlite/me/add/position")
 # bro.wait_load_url("https://www.linkedin.com/mwlite/me/add/position")

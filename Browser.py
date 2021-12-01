@@ -74,11 +74,14 @@ class Browser:
             except:
                 self.close("3. except")
 
-    def linkedin_login(self):
+    def linkedin_login(self, username, password):
         print("start login")
+        gui.moveTo(110, 110)
+        gui.click()
+
         sleep(2)
-        self.driver.find_element(By.ID, "username").send_keys("master_miko@bk.ru")
-        self.driver.find_element(By.ID, "password").send_keys("master666")
+        self.driver.find_element(By.ID, "username").send_keys(username)
+        self.driver.find_element(By.ID, "password").send_keys(password)
         sleep(1)
         self.driver.find_element(By.CSS_SELECTOR, ".login__form_action_container button.from__button--floating").click()
 
