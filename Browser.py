@@ -25,6 +25,7 @@ class Browser:
     closed = True
     start_time = 0
     COOKIE_FILE_NAME = "cookies.pkl"
+    last_key = letters[0]
     db = None
 
     def __init__(self):
@@ -33,6 +34,9 @@ class Browser:
 
         gui.FAILSAFE = True
         self.check_log_file()
+
+        file = open("last_key.txt", "r")
+        self.last_key = file.read().upper()
 
     def load_profile(self):
         print("1. profile load")
@@ -102,6 +106,12 @@ class Browser:
             self.driver.refresh()
             print('cookies loaded')
 
+    def save_last_key(self, text):
+        print(f"{text} saved")
+        f = open("last_key.txt", "a")
+        f.write(text)
+        f.close()
+
     def search(self):
         print("4. search")
         if not self.closed:
@@ -121,8 +131,6 @@ class Browser:
 
                     self.type(self.config["keyword"])
                     gui.press("enter")
-
-                    self.get_ads_el()
             except UnexpectedAlertPresentException:
                 self.close("8. UnexpectedAlertPresentException")
             except:
@@ -147,6 +155,14 @@ class Browser:
                 sleep(randrange(3))
                 gui.click()
                 sleep(randrange(3))
+
+    def add_skill(self, name):
+        try:
+            cur = self.db.cursor()
+            cur.execute('INSERT INTO skill(name) VALUES(?)', (name,))
+            self.db.commit()
+        except:
+            pass
 
     def add_job_title(self, title):
         try:
@@ -249,17 +265,19 @@ class Browser:
             search_input.click()
 
         next_search = True
-        search_key = letters[0]
+        search_key = self.last_key
+        gui.typewrite(search_key[:-1])
+
         while next_search:
             gui.typewrite(search_key[-1])
 
-            items_len = self.add_items()
+            items_len = self.get_job_title()
 
             if items_len == 20:
                 search_key += letters[0]
             else:
                 letter_index = 1 + letters.find(search_key[-1])
-                if letter_index == len(letters):
+                while letter_index == len(letters):
                     search_key = search_key[:-1]
                     gui.hotkey("backspace")
 
@@ -270,16 +288,71 @@ class Browser:
                 gui.hotkey("backspace")
                 search_key += new_key
 
-    def add_items(self):
-        sleep(2)
+    def get_skill(self):
+        sleep(0.5)
+        spinner = True
+        while spinner:
+            spinner = self.driver.find_element(By.CLASS_NAME, 'typeahead-input-spinner').is_displayed()
+
+        search_text = self.get_element("#skills-typeahead-input").get_attribute('value')
+        element = self.driver.find_element(By.ID, "skills-results-list")
+        items = element.find_elements(By.CLASS_NAME, "skill-pill")
+        items_len = len(items)
+        if items_len == 0:
+            return 0
+        elif items_len == 1 and search_text.lower() == items[0].text.lower():
+            return 0
+        else:
+            for item in items:
+                self.add_skill(item.text)
+        print(f"{items_len} added")
+        return items_len
+
+    def get_job_title(self):
+        sleep(0.5)
+        spinner = True
+        while spinner:
+            spinner = self.driver.find_element(By.CLASS_NAME, 'typeahead-input-spinner').is_displayed()
+
         element = self.driver.find_element(By.ID, "edit-position-typeahead-results")
         items = element.find_elements(By.CLASS_NAME, "simple-item")
         items_len = len(items)
-        if items_len > 0:
+        if items_len == 0:
+            return 0
+        else:
             for item in items:
                 self.add_job_title(item.text)
-
+        print(f"{items_len} added")
         return items_len
+
+    def search_skill(self):
+        search_input = self.get_element("#skills-typeahead-input")
+        if search_input.is_displayed():
+            search_input.click()
+
+        next_search = True
+        search_key = self.last_key
+        gui.typewrite(search_key[:-1])
+
+        while next_search:
+            gui.typewrite(search_key[-1])
+
+            items_len = self.get_skill()
+
+            if items_len == 20:
+                search_key += letters[0]
+            else:
+                letter_index = 1 + letters.find(search_key[-1])
+                while letter_index == len(letters):
+                    search_key = search_key[:-1]
+                    gui.hotkey("backspace")
+
+                    letter_index = 1 + letters.find(search_key[-1])
+
+                new_key = letters[letter_index]
+                search_key = search_key[:-1]
+                gui.hotkey("backspace")
+                search_key += new_key
 
     def wait_hide_element(self, selector):
         try:
