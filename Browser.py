@@ -36,7 +36,7 @@ class Browser:
         self.check_log_file()
 
         file = open("last_key.txt", "r")
-        self.last_key = file.read().upper()
+        self.last_key = file.read().upper().replace("\n", "")
 
     def load_profile(self):
         print("1. profile load")
