@@ -19,7 +19,7 @@ class Browser:
               "user_agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Mobile Safari/537.36",
               "device": {"width": 320, "height": 640}
               }
-    timeout = 20
+    timeout = 5
     profile = {}
     driver = {}
     closed = True
@@ -28,12 +28,13 @@ class Browser:
     last_key = letters[0]
     db = None
 
-    def __init__(self):
+    def __init__(self, mobile):
         self.start_time = datetime.now()
         self.db = sl.connect('my.db')
 
         gui.FAILSAFE = True
         self.check_log_file()
+        self.config["is_mobile"] = mobile
 
         file = open("last_key.txt", "r")
         self.last_key = file.read().upper().replace("\n", "")
@@ -175,6 +176,14 @@ class Browser:
         except:
             pass
 
+    def get_new_job_title(self, last_id):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute('SELECT id,title FROM jobs WHERE id > ? ORDER BY id ASC LIMIT 1', (last_id,))
+            return cursor.fetchone()
+        except:
+            return None
+
     def close(self, reason=None):
         if not self.closed:
             self.closed = True
@@ -261,6 +270,10 @@ class Browser:
             return url
         except:
             return None
+
+    def get_wait_url(self, url):
+        self.driver.get(url)
+        return self.wait_load_url(url)
 
     def search_job(self):
         search_input = self.get_element("#postitle")
@@ -402,3 +415,69 @@ class Browser:
     def check_log_file(self):
         if path.isfile('geckodriver.log'):
             self.remove_log_file()
+
+    def search_job_description(self):
+        gui.moveTo(150, 150)
+        gui.click()
+
+        last_id = 1
+        while last_id < 15571:
+            try:
+                search_input = self.driver.find_element(By.ID, "searchField")
+                search_input.click()
+
+                search_input.send_keys(Keys.COMMAND, "A")
+                search_input.send_keys(Keys.DELETE)
+
+                job = self.get_new_job_title(last_id)
+                last_id = job[0]
+
+                gui.typewrite(job[1])
+                gui.hotkey("enter")
+
+                sleep(3)
+
+                self.get_element(".suggestions ul li:first-child").click()
+
+                items = self.wait_show_element("ul.search-examples-group")
+                items = items.find_elements(By.TAG_NAME, "li")
+                print(f"{len(items)} item added")
+
+                for item in items:
+                    description = item.find_element(By.CLASS_NAME, "example-text").text
+                    self.add_job_description(last_id, description)
+
+                self.get_element('.example-editor-block .search-input-section .back-to-titles').click()
+                sleep(1)
+            except:
+                continue
+
+    def add_job_description(self, last_id, description):
+        try:
+            if self.get_job_description_count(last_id, description) == 0:
+                cur = self.db.cursor()
+                cur.execute('INSERT INTO job_description(job_title_id, description) VALUES(?,?)',
+                            (last_id, description))
+                self.db.commit()
+        except:
+            pass
+
+    def get_job_description_count(self, last_id, description):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute('SELECT id FROM job_description WHERE id = ? and description = ?', (last_id, description))
+            return len(cursor.fetchall())
+        except:
+            return 0
+
+    def login_rg(self):
+        sleep(3)
+        self.wait_show_element('#app')
+        email = self.get_element('.email-wrap input.form-control')
+        email.send_keys('master_miko@bk.ru')
+
+        password = self.get_element('.password-wrap input.form-control')
+        password.send_keys('master666')
+
+        login = self.get_element('.login-group-footer button.button-login')
+        login.click()

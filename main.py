@@ -1,26 +1,27 @@
 from Browser import Browser
 
-bro = Browser()
+bro = Browser(mobile=False)
+
 bro.load_profile()
 bro.start_driver()
 bro.load_browser_config()
 
-bro.driver.get("https://www.linkedin.com/uas/login")
-bro.wait_load_url("https://www.linkedin.com/uas/login")
-
-username = input("enter linkedin username:\n")
-password = input("enter linkedin password:\n")
-
-bro.linkedin_login(username, password)
-
-# bro.driver.get("https://www.linkedin.com/mwlite/me/add/position")
-# bro.wait_load_url("https://www.linkedin.com/mwlite/me/add/position")
+# bro.get_wait_url("https://www.linkedin.com/uas/login")
 #
-# bro.search_job()
+# username = input("enter linkedin username:\n")
+# password = input("enter linkedin password:\n")
+#
+# bro.linkedin_login(username, password)
 
-bro.driver.get("https://www.linkedin.com/mwlite/me/edit/skills/new")
-bro.wait_load_url("https://www.linkedin.com/mwlite/me/edit/skills/new")
+# bro.get_wait_url("https://www.linkedin.com/mwlite/me/edit/skills/new")
+#
+# bro.search_skill()
 
-bro.search_skill()
+bro.driver.get("https://app.resumegenius.com/dashboard/account/login")
+bro.login_rg()
+
+command = input("press 1 to continue 0 for exit:\n")
+if command == "1":
+    bro.search_job_description()
 
 bro.close()
