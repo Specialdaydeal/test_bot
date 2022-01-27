@@ -22,6 +22,6 @@ bro.login_rg()
 
 command = input("press 1 to continue 0 for exit:\n")
 if command == "1":
-    bro.search_job_description()
+    bro.search_job_category()
 
 bro.close()

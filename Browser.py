@@ -452,6 +452,33 @@ class Browser:
             except:
                 continue
 
+    def search_job_category(self):
+        gui.moveTo(150, 150)
+        gui.click()
+
+        last_id = 1
+        while last_id < 15571:
+            try:
+                search_input = self.driver.find_element(By.ID, "searchField")
+                search_input.click()
+
+                search_input.send_keys(Keys.COMMAND, "A")
+                search_input.send_keys(Keys.DELETE)
+
+                job = self.get_new_job_title(last_id)
+                last_id = job[0]
+
+                gui.typewrite(job[1])
+                gui.hotkey("enter")
+
+                sleep(3)
+
+                category = self.get_element(".suggestions ul li:first-child").text
+
+                self.add_job_category(last_id, category)
+            except:
+                continue
+
     def add_job_description(self, last_id, description):
         try:
             if self.get_job_description_count(last_id, description) == 0:
@@ -481,3 +508,12 @@ class Browser:
 
         login = self.get_element('.login-group-footer button.button-login')
         login.click()
+
+    def add_job_category(self, last_id, category):
+        try:
+            cur = self.db.cursor()
+            cur.execute('UPDATE job_description SET category=? WHERE job_title_id=?',
+                        (category, last_id))
+            self.db.commit()
+        except:
+            pass
