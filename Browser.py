@@ -116,30 +116,6 @@ class Browser:
         f.write(text)
         f.close()
 
-    def search(self):
-        print("4. search")
-        if not self.closed:
-            try:
-                self.driver.get("https://google.com/")
-                search_form = self.wait_show_element("input[name=q]")
-                if search_form is None:
-                    self.close("search input none")
-                else:
-                    if self.config["is_mobile"]:
-                        self.close_dialog_mobile()
-                    else:
-                        self.close_dialog()
-
-                    self.click(search_form)
-                    sleep(randrange(3))
-
-                    self.type(self.config["keyword"])
-                    gui.press("enter")
-            except UnexpectedAlertPresentException:
-                self.close("8. UnexpectedAlertPresentException")
-            except:
-                self.close("8. except")
-
     def close_dialog_mobile(self):
         print("8.1. close dialog mobile")
         if not self.closed and not self.config["login"]:
@@ -147,16 +123,6 @@ class Browser:
             if button:
                 self.click(button)
                 sleep(1)
-                gui.click()
-                sleep(randrange(3))
-
-    def close_dialog(self):
-        print("8.1. close dialog web")
-        if not self.closed and not self.config["login"]:
-            agree_button = self.wait_show_element("#L2AGLb")
-            if agree_button:
-                self.move_to_el(agree_button)
-                sleep(randrange(3))
                 gui.click()
                 sleep(randrange(3))
 
@@ -253,15 +219,6 @@ class Browser:
             return element
         except:
             return None
-
-    def join_domains(self, items):
-        domains = ""
-        for item in items:
-            if item.domain == "Google Play" or item.domain == "App Store":
-                domains += item.ad_text + ","
-            else:
-                domains += item.domain + ","
-        return domains
 
     def wait_load_url(self, url):
         try:
@@ -501,10 +458,10 @@ class Browser:
         sleep(3)
         self.wait_show_element('#app')
         email = self.get_element('.email-wrap input.form-control')
-        email.send_keys('master_miko@bk.ru')
+        email.send_keys('miko@bk.ru')
 
         password = self.get_element('.password-wrap input.form-control')
-        password.send_keys('master666')
+        password.send_keys('123456')
 
         login = self.get_element('.login-group-footer button.button-login')
         login.click()
